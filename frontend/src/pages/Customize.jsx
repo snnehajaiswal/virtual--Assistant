@@ -28,7 +28,7 @@ const Customize = () => {
                  <div className=' w-[120px] h-[140px] lg:w-[140px] lg:h-[210px] bg-[#030326] border-2 border-[#0000ff73] rounded-2xl overflow-hidden flex justify-center items-center hover:shadow-2xl hover:shadow-blue-700 hover:border-4 hover:border-white cursor-pointer' onClick={()=>inputImage.current.click()}>
                        <RiImageAddFill className='text-white w-[25px] h-[25px]'/>
                  </div>
-                 <input type="file" accept="image/*" ref={inputImage} hidden onC/>
+                 <input type="file" accept="image/*" ref={inputImage} hidden />
                 
       </div>
                   <button className='min-w-[148px] h-[58px] bg-white cursor-pointer rounded-full mt-[10px] text-black font-semibold text-[19px]'>Next</button>
