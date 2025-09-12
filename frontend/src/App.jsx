@@ -28,7 +28,7 @@ const App = () => {
         element={
           !userData
             ? <SignUp />
-            : <Navigate to="/signin" />
+            : <Navigate to="/" />
         }
       />
 
@@ -38,7 +38,7 @@ const App = () => {
         element={
           !userData
             ? <SignIn />
-            : <Navigate to="/customize" />
+            : <Navigate to="/" />
         }
       />
 
