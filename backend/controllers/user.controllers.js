@@ -16,27 +16,7 @@ export const getCurrentUser=async (req,res)=>{
     }
 }
 
-// export const updateAssistant=async (req,res)=>{
-//      try{
-//        const {assistantName,imageUrl}=req.body
-//        console.log(assistantName)
-//        console.log(imageUrl)
-//        let assistantImage;
-//        if(req.file){
-//         assistantImage=await uploadOnCloudinary(req.file.path)
-//        }else{
-//         assistantImage=imageUrl
-//        }
-//        const user=await User.findByIdAndUpdate(req.userId,{
-//         assistantName,assistantImage
-//        },{new:true}).select("-password")
-//        return res.status(200).json(user)
-//      }catch(error){
-//   console.error("Update Assistant error:", error);
-//   return res.status(500).json({message:"Update Assistant error", error: error.message})
-// }
 
-// }
 
 export const updateAssistant = async (req, res) => {
   try {
@@ -67,6 +47,8 @@ export const askToAssistant=async (req,res)=>{
   try{
       const {command}=req.body
       const user=await User.findById(req.userId)
+      user.history.push(command)
+      user.save()
       const userName=user.name
       const assistantName=user.assistantName
       const result=await geminiResponse(command,assistantName,userName)
