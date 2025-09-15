@@ -9,7 +9,7 @@ import image6 from "../assets/image6.jpeg"
 import image7 from "../assets/image7.jpeg"
 import { RiImageAddFill } from "react-icons/ri";
 import { MdKeyboardBackspace } from "react-icons/md";
-import { userDataContext } from '../context/userContext'
+import { userDataContext } from '../context/UserContext'
 import { useNavigate } from 'react-router-dom'
 
 const Customize = () => {
