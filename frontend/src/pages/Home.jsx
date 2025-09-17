@@ -32,28 +32,43 @@ const Home = () => {
   };
    
    const startRecognition=()=>{
+   if(!isSpeakingRef.current && !isRecognizingRef.current){
     try{
        recognitionRef.current?.start()
-       setListening(true)
+       console.log("Recognition request to start")
+      //  setListening(true)
     }catch(error){
       if(!error.message.includes("start")){
         console.error("Recognition error:",error)
       }
     }
+
    }
+  }
 
    const speak=(text)=>{
     const utterence=new SpeechSynthesisUtterance(text)
     isSpeakingRef.current=true
     utterence.onend=()=>{
     isSpeakingRef.current=false
-    startRecognition()
+    setTimeout(()=>{
+        startRecognition()
+    },800)
     }
+    synth.cancel()
     synth.speak(utterence)
    }
 
    const handleCommand=(data)=>{
+     if (!data || data.error) {
+    speak("Sorry, something went wrong.");
+    return;
+  }
     const {type,userInput,response}=data
+     if (!type || !response) {
+    speak("Sorry, I didn't understand that.");
+    return;
+  }
     speak(response);
 
     if(type === "google_search"){
@@ -85,23 +100,36 @@ const Home = () => {
     const recognition=new SpeechRecognition()
     recognition.continuous=true,
     recognition.lang='en-US'
-
+    recognition.interimResults=false
     recognitionRef.current=recognition
 
-    
+    let isMounted=true;
 
-    const safeRecognition=()=>{
-      if(!isSpeakingRef.current && !isRecognizingRef.current){
+    const startTimeout=setTimeout(()=>{
+      if(isMounted && !isSpeakingRef.current && !isRecognizingRef.current){
         try{
             recognition.start()
             console.log("Recognition requested to start")
-        }catch(err){
-          if(err.name !== "InvalidStateError"){
-            console.error("Start error :",err)
+        }catch(e){
+          if(e.name !== "InvalidStateError"){
+            console.error(e)
           }
         }
       }
-    }
+    },1000)
+
+    // const safeRecognition=()=>{
+    //   if(!isSpeakingRef.current && !isRecognizingRef.current){
+    //     try{
+    //         recognition.start()
+    //         console.log("Recognition requested to start")
+    //     }catch(err){
+    //       if(err.name !== "InvalidStateError"){
+    //         console.error("Start error :",err)
+    //       }
+    //     }
+    //   }
+    // }
 
     recognition.onstart=()=>{
       console.log("Recognition started")
@@ -113,21 +141,40 @@ const Home = () => {
       console.log("Recognition ended");
       isRecognizingRef.current=false
       setListening(false)
-
-      if(!isSpeakingRef.current){
+      
+      if(isMounted && !isSpeakingRef.current){
         setTimeout(()=>{
-          safeRecognition()
+          if(isMounted){
+            try{
+              recognition.start()
+              console.log("Recognition restarted")
+            }catch(e){
+               if(e.name !== "InvalidStateError"){
+            console.error(e)
+          }
+            }
+          }
         },1000)
       }
+     
     }
 
     recognition.onerror=(event)=>{
       console.warn("Recognition error :",event.error)
       isRecognizingRef.current=false;
       setListening(false)
-      if(event.error !== "aborted" && !isSpeakingRef.current){
+      if(event.error !== "aborted" && isMounted && !isSpeakingRef.current){
         setTimeout(()=>{
-          safeRecognition()
+          if(isMounted){
+            try{
+              recognition.start()
+              console.log("Recognition restarted after error")
+            }catch(e){
+               if(e.name !== "InvalidStateError"){
+            console.error(e)
+          }
+            }
+          }
         },1000)
       }
     }
@@ -142,25 +189,33 @@ const Home = () => {
         isRecognizingRef.current=false
         setListening(false)
         const data=await getGeminiResponse(transcript)
-        console.log(data)
-        handleCommand(data)
-        setAiText(data.response)
+        console.log("Assistant reply :",data)
+           if (data && !data.error) {
+      handleCommand(data);
+      setAiText(data.response);
+    } else {
+      setAiText("Sorry, I couldn’t process that.");
+      speak("Sorry, I couldn’t process that.");
+    }
         setUserText("")
       }
 
     }
 
-    const fallback=setInterval(()=>{
-       if(!isSpeakingRef.current && !isRecognizingRef.current){
-        safeRecognition()
-       }
-    },10000)
-     safeRecognition()
+     
+      
+    const greeting = new SpeechSynthesisUtterance(`Hello ${userData.name},what can i help you with?`)
+    console.log(`${userData.name}`)  
+    greeting.lang= 'en-US' 
+    window.speechSynthesis.speak(greeting)
+     
+   
     return()=>{
+      isMounted=false
+      clearTimeout(startTimeout)
       recognition.stop()
       setListening(false)
       isRecognizingRef.current=false
-      clearInterval(fallback)
     }
     
   },[])
